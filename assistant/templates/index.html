@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Personal Assistant</title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="/static/index.css">
+    </head>
+    <body>
+        <div id="chat-container">
+            <div class="bot-chat-message">
+                <p class="sender-name">Bot</p>
+                <p>Hello, how can I help?</p>
+            </div>
+        </div>
+        <form id="prompt-input-container">
+            <input id="user-prompt" name="user-prompt" class="prompt-input" placeholder="Message Assistant" autocomplete="off" />
+        </form>
+        
+        <script>
+            document.getElementById('prompt-input-container').onsubmit = async function(event) {
+                event.preventDefault();
+
+                let userInput = document.getElementById('user-prompt').value;
+                let userPromptInput = document.getElementById('user-prompt');
+
+                if (userInput.trim() === '') {
+                    return;
+                }
+
+                let chatContainer = document.getElementById('chat-container');
+                let userMessageDiv = document.createElement('div');
+                userMessageDiv.classList.add('user-chat-message');
+                userMessageDiv.innerHTML = `
+                    <p class="sender-name">You</p>
+                    <p>${userInput}</p>
+                `;
+                chatContainer.appendChild(userMessageDiv);
+
+                userPromptInput.value = '';
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                userPromptInput.disabled = true;
+
+                try {
+                    let response = await fetch('/get-agent-response', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `user-prompt=${encodeURIComponent(userInput)}`
+                    });
+
+                    let responseData = await response.json();
+
+                    let botMessageDiv = document.createElement('div');
+                    botMessageDiv.classList.add('bot-chat-message');
+                    botMessageDiv.innerHTML = `
+                        <p class="sender-name">Bot</p>
+                        <p>${responseData.response}</p>
+                    `;
+                    chatContainer.appendChild(botMessageDiv);
+                    
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                } catch (error) {
+                    console.error('Error fetching agent response:', error);
+                } finally {
+                    userPromptInput.disabled = false;
+                    userPromptInput.focus();
+                }
+            }
+        </script>
+    </body>
+</html>
