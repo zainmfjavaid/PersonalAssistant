@@ -15,4 +15,4 @@ def get_agent_response():
     return jsonify({'response': response})
 
 if __name__ == '__main__':
-    app.run(host='localhost', port=3000)
+    app.run(host='localhost', port=5000)
